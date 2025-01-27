@@ -24,7 +24,22 @@ const nameCorrections = {
     'Gekko': 'Gekko Hayate',
 };
 
+const compoundNames = [
+    'Human Path Pein',
+    'Human Path Pain',
+    'Female Path Pein',
+    'Female Path Pain'
+];
+
 function correctName(name) {
+    // First check if this part contains any compound names
+    for (const compound of compoundNames) {
+        if (name.toLowerCase().includes(compound.toLowerCase())) {
+            return name; // Keep the original casing if it contains a compound name
+        }
+    }
+
+    // If no compound name is found, proceed with normal correction
     const lowerName = name.toLowerCase();
     for (let key in nameCorrections) {
         if (lowerName === key.toLowerCase()) {
@@ -40,10 +55,7 @@ let hideErrorLogging = false;
 function toggleLineNumbers() {
     showLineNumbers = !showLineNumbers;
     const button = document.querySelector('.output-section .material-button');
-    button.innerHTML = `
-        <span class="material-icons">${showLineNumbers ? 'format_list_numbered_off' : 'format_list_numbered'}</span>
-        ${showLineNumbers ? 'Remove Listing Numbers' : 'Add Listing Numbers'}
-    `;
+    button.textContent = showLineNumbers ? 'Remove Listing Numbers' : 'Add Listing Numbers';
     
     const correctedTextDiv = document.getElementById('correctedText');
     const textContent = correctedTextDiv.innerHTML;
@@ -82,6 +94,11 @@ function checkFormat() {
             const trimmedPart = part.trim();
             if (trimmedPart.match(/^[+/,&]$/)) {
                 return part;
+            }
+            // Check the entire part for compound names before splitting
+            if (compoundNames.some(compound => 
+                trimmedPart.toLowerCase().includes(compound.toLowerCase()))) {
+                return trimmedPart;
             }
             return part.split(' ').map(word => {
                 if (word === '(S)' || !word.trim()) return word;
