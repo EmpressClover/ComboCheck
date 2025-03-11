@@ -212,6 +212,7 @@ function checkFormat() {
     lines.forEach((line, index) => {
         if (line.trim() === '') return;
 
+        // First correct the names and format
         let correctedLine = line.split(/([+/,&])/).map(part => {
             const trimmedPart = part.trim();
             if (trimmedPart.match(/^[+/,&]$/)) {
@@ -228,6 +229,7 @@ function checkFormat() {
             }).join(' ');
         }).join('');
 
+        // Check for incorrect "S" format BEFORE applying fixes
         const incorrectSMatches = correctedLine.match(/\w+\s*S(?!\()/g);
         if (incorrectSMatches) {
             incorrectSMatches.forEach(match => {
@@ -235,18 +237,17 @@ function checkFormat() {
             });
         }
 
+        // Check for spacing issues BEFORE applying fixes
         if (correctedLine.match(/\S\/|\S\+|\+\S|\/\S|\S&|&\S|\S,|,\S/)) {
             issues.push(`Line ${index + 1}: "${line}" has incorrect spacing around "/", "+", "&", or ","`);
         }
 
+        // Apply formatting fixes
         correctedLine = correctedLine
             .replace(/(\w+)\s*S\b/g, '$1 (S)')
             .trim();
 
-        if (correctedLine.match(/\w+\s+S\b/) || correctedLine.match(/\w+S\b/)) {
-            issues.push(`Line ${index + 1}: "${line}" contains "Character S" format. Should be "Character (S)"`);
-        }
-
+        // Check for main character duplicates
         const mainCharacterMatch = correctedLine.match(/^([^+]+)/);
         if (mainCharacterMatch) {
             const mainChar = mainCharacterMatch[1].trim();
@@ -262,6 +263,7 @@ function checkFormat() {
             }
         }
 
+        // Apply spacing fixes
         correctedLine = correctedLine
             .replace(/\s*\/\s*/g, ' / ')
             .replace(/\s*\+\s*/g, ' + ')
@@ -270,6 +272,7 @@ function checkFormat() {
             .replace(/\s+/g, ' ')
             .trim();
 
+        // Check for and remove duplicate names
         const parts = correctedLine.split(/([+/,&])/);
         const seenNames = new Map();
         const filteredParts = parts.filter((part, idx) => {
@@ -297,9 +300,13 @@ function checkFormat() {
         });
         correctedLine = filteredParts.join('');
 
+        // Add a dash at the end of each line
+        correctedLine = correctedLine + ' -';
+
         correctedLines.push(correctedLine);
     });
 
+    // Display results
     const resultsDiv = document.getElementById('results');
     const correctedTextDiv = document.getElementById('correctedText');
 
